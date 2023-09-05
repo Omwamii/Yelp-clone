@@ -19,6 +19,7 @@ class User(BaseModel, Base):
         first_name = Column(String(128), nullable=True)
         last_name = Column(String(128), nullable=True)
         user_name = Column(String(128), nullable=False) # make this primary key?
+        is_active = Column(Boolean, default=True)
         # add photos / videos -> both for reviews & personal
         # add friends
         friends = relationship("User", backref="friend") # verify
@@ -32,7 +33,8 @@ class User(BaseModel, Base):
         password = ""
         first_name = ""
         last_name = ""
-        user_name = "" 
+        user_name = ""
+        is_active = True # manage account status
         friends = []
         fav_bizes = []
         fav_reviews = []
@@ -41,6 +43,16 @@ class User(BaseModel, Base):
     def __init__(self, *args, **kwargs):
         """initializes user"""
         super().__init__(*args, **kwargs)
+
+    def get_id(self):
+        """ Required for Flask-login to get user's unique id
+        """
+        return self.id # or any other unique attr
+
+    @property
+    def is_authenticated(self):
+        """ check if user is authenticated """
+        return True # temp sln
 
     """
     def __setattr__(self, name, value):

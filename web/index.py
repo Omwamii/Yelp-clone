@@ -12,7 +12,8 @@ from flask_login import login_user, LoginManager, login_required, logout_user, c
 from flask import session
 from models import storage
 import requests
-from flask_bcrypt import Bcrypt
+# from flask_bcrypt import Bcrypt
+from passlib.hash import sha256_crypt
 import uuid
 
 app = Flask(__name__)
@@ -20,7 +21,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 app.secret_key = b'd_~!H|-%^#@lM])*$/<'
-bcrypt = Bcrypt(app)
+# bcrypt = Bcrypt(app)
 
 # app.jinja_env.trim_blocks = True
 # app.jinja_env.lstrip_blocks = True
@@ -80,9 +81,9 @@ def login():
             flash("Wrong username or password")
             return redirect(url_for('login'))
 
-        print(user.password)
-        print(bcrypt.generate_password_hash(passwd).decode('utf-8'))
-        if bcrypt.check_password_hash(user.password, passwd):
+        # if bcrypt.check_password_hash(user.password, passwd):
+        if sha256_crypt.verify(passwd, user.password):
+            print("---- Passwords match! Auth successful ----")
             login_user(user) # passwords match
             return render_template('login_success.html')
         else:
@@ -100,8 +101,8 @@ def register_user():
         lname = form_data['lname']
         u_name = form_data['username']
         email = form_data['email']
-        passwd = form_data['password'].encode('utf-8')
-        confirm_pass = form_data['confirmation'].encode('utf-8')
+        passwd = str(form_data['password'])
+        confirm_pass = str(form_data['confirmation'])
 
         if confirm_pass != passwd:
             # return error, passwords dont match
@@ -116,9 +117,8 @@ def register_user():
                 return redirect(url_for('register_user'))
 
         # encrypt password and create user
-        hashed_pass = bcrypt.generate_password_hash(passwd).decode('utf-8')
-        print("Pass generated -> ", end="")
-        print(hashed_pass)
+        # hashed_p = bcrypt.generate_password_hash(passwd).decode('utf-8')
+        hashed_pass = sha256_crypt.hash(passwd)
         data = {'first_name': fname, 'last_name': lname,
                 'user_name': u_name, 'email': email,
                 'password': hashed_pass}
@@ -177,6 +177,17 @@ def logout():
 def goto_business(biz_id):
     """ go to a business """
     return render_template('business.html')
+
+@app.route('/bizes', strict_slashes=False)
+def show_bizes():
+    """ Show businesses """
+    return render_template('bizes.html')
+
+@app.route('/reviews', strict_slashes=False)
+def show_reviews():
+    """ Show general reviews """
+    return render_template('reviews.html')
+
 
 if __name__ == "__main__":
     """ Main Function """
