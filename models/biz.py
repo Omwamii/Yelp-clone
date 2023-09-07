@@ -2,15 +2,18 @@
 """ holds class Biz"""
 import models
 from models.base_model import BaseModel, Base
+from models.user import User
 from os import getenv
 import sqlalchemy
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, Table
 from sqlalchemy.orm import relationship
+from models.category import Category
+
 
 if models.storage_t == 'db':
     place_amenity = Table('place_amenity', Base.metadata,
-                          Column('place_id', String(60),
-                                 ForeignKey('places.id', onupdate='CASCADE',
+                          Column('biz_id', String(60),
+                                 ForeignKey('bizes.id', onupdate='CASCADE',
                                             ondelete='CASCADE'),
                                  primary_key=True),
                           Column('amenity_id', String(60),
@@ -51,7 +54,7 @@ class Biz(BaseModel, Base):
         amenity_ids = []
 
     def __init__(self, *args, **kwargs):
-        """initializes Place"""
+        """initializes Biz"""
         super().__init__(*args, **kwargs)
 
     if models.storage_t != 'db':
@@ -65,6 +68,24 @@ class Biz(BaseModel, Base):
                 if review.biz_id == self.id:
                     review_list.append(review)
             return review_list
+
+        @property
+        def get_category(self):
+            """ returns the category of the business """
+            cat_obj = models.storage.get(Category, self.category_id)
+            if cat_obj is None:
+                category = "None"
+            else:
+                category = cat_obj.name
+            return category
+
+        @property
+        def get_owner(self):
+            """ returns the owner of the business """
+            usr_obj = models.storage.get(User, self.user_id)
+            owner_name = usr_obj.first_name + " " + usr_obj.last_name
+            return owner_name
+              
 
         """
         def amenities(self):

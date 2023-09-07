@@ -1,49 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top bg-body-tertiary">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">Logo</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav nav-fill w-100">
-              <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="#">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Reviews</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Businesses</a>
-              </li>
-              <li>
-                <a href="login.html">
-                  <button type="button" class="btn btn-secondary">Login / Sign up</button>
-                </a>
-              </li>
-	      <h1>You are at the business page</h1>
-              <!-- Profile pics for businesses-->
-              <!-- NAV for quick actions -> save to collection, review, -->
-              <!-- Opening hours (optional?)-->
-              <!-- About the business-->
-              <!-- Amenities -->
-              <!-- Ask the owner -->
-              <!-- Reviews-->
+{% extends 'layout.html' %}
+{% block title %} Business {% endblock %}
+{% block body %}
+<h1 class="text-center">{{ biz.name }}</h1>
+<!-- add Profile pics for businesses-->
+<!-- NAV for quick actions -> save to collection, review, -->
+<h3 class="text-center">save to collection</h3>
+<a class="text-center" href="#review">Write a review</a>
+<!-- Opening hours (optional?)-->
+<h3 class="text-center">Opening hours</h3>
+<!-- About the business-->
+<p class="text-center">{{ biz.description }}</p>
+<!-- Amenities -->
+<h4 class="text-center"> Biz amenities</h4>
+<!-- Ask the owner -->
+<h4 class="text-center">Ask the owner</h4>
+<!-- Reviews-->
+<p class="text-center">Write a review</p>
+<section id="review">
+	<div class="container my-5 py-5 text-dark">
+		<div class="row d-flex justify-content-center">
+			<div class="col-md-10 col-lg-8 col-xl-6">
+				<div class="card">
+					<div class="card-body p-4">
+						<div class="d-flex flex-start w-100">
+							<img class="rounded-circle shadow-1-strong me-3"
+								src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(21).webp" alt="avatar"
+								width="65" height="65" />
+							<div class="w-100">
+								
+								<div class="form-outline">
+									<form action="" method="POST">
+										<textarea class="form-control" id="textAreaExample" name="review" rows="4"></textarea>
+										<label class="form-label" for="textAreaExample">What is your view?</label>
+								</div>
+								<div class="d-flex justify-content-between mt-3">
+									<button type="submit" class="btn btn-success">
+										Send <i class="fas fa-long-arrow-alt-right ms-1"></i>
+									</button>
+								</div>
+									</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
                    <!-- Overall rating, stats by rate. clicking rate = filter-->
                    <!-- Review -->
                         <!-- Profile pic, number of reviews, name, photo (option), rating, review-->
-        
-            </ul>
-          </div>
-        </div>
-      </nav>
-
-</body>
-</html>
+{% endblock %}

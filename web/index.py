@@ -6,6 +6,7 @@ from models.city import City
 from models.amenity import Amenity
 from models.biz import Biz
 from models.user import User
+from models.review import Review
 from os import environ
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import login_user, LoginManager, login_required, logout_user, current_user
@@ -172,23 +173,53 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-@app.route('/business/<biz_id>', strict_slashes=False)
-@login_required
-def goto_business(biz_id):
+@app.route('/business/<biz_id>', methods=['GET', 'POST'], strict_slashes=False)
+def goto_biz(biz_id):
     """ go to a business """
-    return render_template('business.html')
+    if request.method == "POST":
+        form_data = request.form
+        text = form_data['review']
+        user_id = current_user.id
+        biz_id = biz_id
+
+        data = {'user_id': user_id, 'biz_id': biz_id,
+                'text': text}
+        # create review obj & save
+        new_review = Review(**data)
+        new_review.save
+        if new_review:
+            print(new_review.to_dict()) # confirm
+            flash("Review posted!")
+        else:
+            flash("There was an error processing your review")
+        return redirect(url_for('goto_biz', biz_id=biz_id))
+    else:
+        biz_obj = storage.get(Biz, biz_id)
+        return render_template('business.html', biz=biz_obj)
+
+@app.route('/review/<rev_id>', strict_slashes=False)
+def goto_review(rev_id): # edit?
+    """ go to a review """
+    # get review with api and render with page
+    pass
 
 @app.route('/bizes', strict_slashes=False)
 def show_bizes():
     """ Show businesses """
-    return render_template('bizes.html')
+    bizes_dict = storage.all(Biz)
+    bizes = list()
+    for biz_id, biz_obj in bizes_dict.items():
+        bizes.append(biz_obj)
+        print(biz_obj.get_category)
+    return render_template('bizes.html', bizes=bizes)
 
 @app.route('/reviews', strict_slashes=False)
 def show_reviews():
     """ Show general reviews """
-    return render_template('reviews.html')
+    reviews = storage.all(Review)
+    return render_template('reviews.html', reviews=reviews)
 
 
 if __name__ == "__main__":
     """ Main Function """
-    app.run(host='0.0.0.0', port=5500)
+    app.run(host='0.0.0.0', port=5500, debug=True)

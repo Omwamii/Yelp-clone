@@ -1,5 +1,29 @@
 {% extends "layout.html" %}
-{% block title %} Home {% endblock %}
+{% block title %} Businesses {% endblock %}
 {% block body %}
-<h2>You're about to see some bizes :)</h2>
+ <div class="row row-cols-3">
+	 {% if bizes|length == 0 %}
+	 <h1 class="text-center">No businesses yet.</h1>
+	 {% endif %}
+            {% for biz in bizes %}
+	    <a href="{{ url_for('goto_biz', biz_id=biz.id) }}" style="text-decoration: none; color: black;">
+                    <div class="col" style="margin-top: 10px;">
+                            <div class="card">
+                                    {% if biz.image %}
+                                    <img class="card-img-top" src="{{ biz.image.url }}" style="max-width: 550px; max-height: 400px;" alt="{{ biz.name }}'s image">
+                                    {% endif %}
+                                    <div class="card-body">
+                                            <h5 class="card-title">{{ biz.name }}</h5>
+                                            <p class="card-text">{{ biz.description }}</p>
+					    <p class="card-text">Category: {{ biz.get_category }}</p>
+                                    </div>
+                                    <div class="card-footer">
+					    <small class="text-muted">Owner: {{ biz.get_owner }}</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+					    <small class="text-muted">Reviews ({{ biz.reviews|length }})</small>
+                                    </div>
+                            </div>
+                    </div>
+            </a>
+            {% endfor %}
+            </div>
 {% endblock %}

@@ -27,3 +27,24 @@ class Review(BaseModel, Base):
     def __init__(self, *args, **kwargs):
         """initializes Review"""
         super().__init__(*args, **kwargs)
+    
+    if models.storage_t != "db":
+        @property
+        def get_biz_name(self):
+            """ return the business name for the review"""
+            biz_obj = storage.get(Biz, self.biz_id)
+            if biz_obj is None:
+                biz_name = ""
+            else:
+                biz_name = biz_obj.name
+            return biz_name
+
+        @property
+        def get_user_name(self):
+            """ get user who reviewed """
+            user_obj = storage.get(User, self.user_id)
+            if user_obj is None:
+                u_name = ""
+            else:
+                u_name = user_obj.user_name
+            return u_name
