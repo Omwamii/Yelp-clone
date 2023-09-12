@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %} Reviews {% endblock %}
+{% block body %}
+<h1 class="text-center">Your reviews</h1>
+ <div class="row row-cols-3">
+	 {% if reviews|length == 0 %}
+	 <h1 class="text-center">No Reviews yet.</h1>
+	 {% endif %}
+            {% for review in reviews %}
+                    <div class="col" style="margin-top: 10px;">
+                            <div class="card">
+                                    {% if review.image %}
+                                    <img class="card-img-top" src="{{ review.image.url }}" style="max-width: 550px; max-height: 400px;" alt="review image">
+                                    {% endif %}
+                                    <div class="card-body">
+                                            <h5 class="card-title">Posted on {{ review.created_at.strftime('%Y-%m-%d') }}</h5>
+                                            <a href="{{ url_for('goto_biz', biz_id=review.biz_id) }}">
+                                                {{ review.get_biz_name }}
+                                            </a>
+                                            <div class="star">
+                                                {% for star in range(1, 6) %}
+                                                {% if review.rating|int >= star %}
+                                                <span
+                                                    class="star">⭐️</span><!-- Display a star if the rating is greater than or equal to the current star value -->
+                                                {% else %}
+                                                <span class="star">☆</span>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <p class="card-text">{{ review.text }}</p>
+
+					    <!-- add a confirmation before deleting business -->
+					    <form action="" method="POST">
+						    <input type="hidden" name="id" value="{{ review.id }}">
+						    <button type="submit" class="btn btn-danger">
+							    Delete Review
+						    </button>
+					    </form>
+                                    </div>
+                            </div>
+                    </div>
+            {% endfor %}
+            </div>
+{% endblock %}

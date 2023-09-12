@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block title %} Business {% endblock %}
+{% block body %}
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+<ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+</ul>
+{% endif %}
+{% endwith %}
+<a href="{{ url_for('goto_biz', biz_id=biz.id) }}" style="text-decoration: none;">
+	<button class="load-more">Back to {{ biz.name }}</button>
+</a>
+<section id="review" style="margin-top: 15px;">
+	<div id="rateYo"></div> <!-- add rating option for review -->
+	<div class="container my-5 py-5 text-dark">
+		<div class="row d-flex justify-content-center">
+			<div class="col-md-10 col-lg-8 col-xl-6">
+				<div class="card">
+					<div class="card-body p-4">
+						<div class="d-flex flex-start w-100">
+							<img class="rounded-circle shadow-1-strong me-3"
+								src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/img%20(21).webp" alt="avatar"
+								width="65" height="65" />
+							<div class="w-100">
+								
+								<div class="form-outline">
+									<form action="" method="POST">
+										<div class="rate">
+											<input type="radio" id="star5" name="rate" value="5" />
+											<label for="star5" title="text">5 stars</label>
+											<input type="radio" id="star4" name="rate" value="4" />
+											<label for="star4" title="text">4 stars</label>
+											<input type="radio" id="star3" name="rate" value="3" />
+											<label for="star3" title="text">3 stars</label>
+											<input type="radio" id="star2" name="rate" value="2" />
+											<label for="star2" title="text">2 stars</label>
+											<input type="radio" id="star1" name="rate" value="1" />
+											<label for="star1" title="text">1 star</label>
+										  </div>
+										<textarea class="form-control" id="textAreaExample" name="review" rows="4" required></textarea>
+										<label class="form-label text-muted" for="textAreaExample">What is your view?</label>
+								</div>
+								<div class="d-flex justify-content-between mt-3">
+									<button type="submit" class="send-btn">Send</button>
+								</div>
+									</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+{% endblock %}

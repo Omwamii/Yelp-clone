@@ -2,6 +2,8 @@
 """ holds class Review"""
 import models
 from models.base_model import BaseModel, Base
+from models.user import User
+from models.biz import Biz
 from os import getenv
 import sqlalchemy
 from sqlalchemy import Column, String, ForeignKey
@@ -17,12 +19,14 @@ class Review(BaseModel, Base):
         # add button count for found useful
         found_useful = Column(Integer, nullable=False, default=0)
         # add user ability to favorite review
+        # add rating
 
     else:
         biz_id = ""
         user_id = ""
         text = ""
         found_useful = 0
+        rating = 1 # lowest by default
 
     def __init__(self, *args, **kwargs):
         """initializes Review"""
@@ -32,7 +36,7 @@ class Review(BaseModel, Base):
         @property
         def get_biz_name(self):
             """ return the business name for the review"""
-            biz_obj = storage.get(Biz, self.biz_id)
+            biz_obj = models.storage.get(Biz, self.biz_id)
             if biz_obj is None:
                 biz_name = ""
             else:
@@ -42,9 +46,6 @@ class Review(BaseModel, Base):
         @property
         def get_user_name(self):
             """ get user who reviewed """
-            user_obj = storage.get(User, self.user_id)
-            if user_obj is None:
-                u_name = ""
-            else:
-                u_name = user_obj.user_name
+            user_obj = models.storage.get(User, self.user_id)
+            u_name = user_obj.user_name
             return u_name

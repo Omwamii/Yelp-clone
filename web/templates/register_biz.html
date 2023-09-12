@@ -13,21 +13,22 @@
 {% endwith %}
     <form action="" method="post">
         <div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
-            <input class="form-control" autofocus type="text" name="bizname" placeholder="Business name">
+            <input class="form-control" autofocus type="text" name="bizname" placeholder="Business name" required>
         </div>
 	<div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
-		<select class="form-select" aria-label="Default select example">
+		<select class="form-select" aria-label="Default select example" name="city" required>
 			<option selected>Select City</option>
 			{% for ct in cities %}
+			{{ ct }}
 			<option value="{{ ct.id }}">{{ ct.name }}</option>
 			{% endfor %}
 		</select>
 	</div>
         <div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
-            <input class="form-control" type="email" name="email" placeholder="Email Address">
+            <input class="form-control" type="email" name="email" placeholder="Email Address" required>
         </div>
 	<div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
-		<textarea class="form-control" rows="5" id="description">
+		<textarea class="form-control" rows="5" name="description" required>
 		</textarea>
 	</div>
 	<div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
@@ -37,9 +38,10 @@
             <input class="form-control" type="text" name="longitude" placeholder="Longitude">
         </div>
 	<div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
-                <select class="form-select" aria-label="Default select example">
+                <select class="form-select" aria-label="Default select example" name="category" required>
                         <option selected>Choose business category</option>
                         {% for cat in categories %}
+			{{ cat }}
                         <option value="{{ cat.id }}">{{ cat.name}}</option>
                         {% endfor %}
                 </select>

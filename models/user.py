@@ -21,8 +21,6 @@ class User(BaseModel, Base):
         user_name = Column(String(128), nullable=False) # make this primary key?
         is_active = Column(Boolean, default=True)
         # add photos / videos -> both for reviews & personal
-        # add friends
-        friends = relationship("User", backref="friend") # verify
         # add favorite__businesses
         fav_bizes = relationship("Biz", backref="fav_customer")
         # add favorite_reviews
@@ -35,7 +33,6 @@ class User(BaseModel, Base):
         last_name = ""
         user_name = ""
         is_active = True # manage account status
-        friends = []
         fav_bizes = []
         fav_reviews = []
         reviews = []

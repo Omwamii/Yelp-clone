@@ -6,23 +6,37 @@
 	 <h1 class="text-center">No reviews yet</h1>
 	 {% endif %}
             {% for review in reviews %}
-	    <a href="{{ url_for('goto_review', rev_id=review.id) }}" style="text-decoration: none; color: black;">
                     <div class="col" style="margin-top: 10px;">
                             <div class="card">
+				    <!-- add option for user to add images -->
                                     {% if review.image %}
                                     <img class="card-img-top" src="{{ review.image.url }}" style="max-width: 550px; max-height: 400px;" alt="Review image">
                                     {% endif %}
                                     <div class="card-body">
                                             <h5 class="card-title">{{ review.get_user_name }}</h5>
+					    <a href="{{ url_for('goto_biz', biz_id=review.biz_id) }}">
+						    {{ review.get_biz_name }}
+					    </a>
+                                                <div class="star">
+                                                        {% for star in range(1, 6) %}
+                                                                {% if review.rating|int >= star %}
+                                                                    <span class="star">⭐️</span><!-- Display a star if the rating is greater than or equal to the current star value -->
+                                                                {% else %}
+                                                                    <span class="star">☆</span> 
+                                                                {% endif %}
+                                                        {% endfor %}
+                                                </div>
                                             <p class="card-text">{{ review.text }}</p>
-					    <p class="card-text">{{ review.get_biz_name }}</p>
                                     </div>
                                     <div class="card-footer">
-					    <small class="text-muted">Found useful: {{ review.found_useful }}</small>
+                                        <button class="like-btn" title="found useful" value="{{ review.id }}">
+                                                <span class="material-icons">thumb_up</span>
+                                            </button>
+					    <small class="text-muted">{{ review.found_useful }}</small>
                                     </div>
                             </div>
                     </div>
-            </a>
             {% endfor %}
             </div>
+            <button class="load-more">Load more</button>
 {% endblock %}

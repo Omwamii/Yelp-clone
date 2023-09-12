@@ -63,6 +63,7 @@ def post_review(biz_id):
     biz = storage.get(Biz, biz_id)
 
     if not biz:
+        print("Invalid biz_id (does not exist)")
         abort(404)
 
     if not request.get_json():
@@ -75,6 +76,7 @@ def post_review(biz_id):
     user = storage.get(User, data['user_id'])
 
     if not user:
+        print("No such user")
         abort(404)
 
     if 'text' not in request.get_json():
@@ -83,6 +85,9 @@ def post_review(biz_id):
     data['biz_id'] = biz_id
     instance = Review(**data)
     instance.save()
+    user.reviews.append(instance.id) # add review to user's reviews list
+    user.save()
+    print(user.reviews) # check if review was added to user reviews list
     return make_response(jsonify(instance.to_dict()), 201)
 
 

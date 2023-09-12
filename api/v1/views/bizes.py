@@ -65,6 +65,7 @@ def post_biz(city_id):
     city = storage.get(City, city_id)
 
     if not city:
+        print("City not found")
         abort(404)
 
     if not request.get_json():
@@ -77,6 +78,7 @@ def post_biz(city_id):
     user = storage.get(User, data['user_id'])
 
     if not user:
+        print("No such user")
         abort(404)
 
     if 'name' not in request.get_json():

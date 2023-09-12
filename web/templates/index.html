@@ -1,5 +1,57 @@
 {% extends "layout.html" %}
 {% block title %} Home {% endblock %}
 {% block body %}
-<h2 class="text-center">Home</h2>
+<h3 class="text-center">Recent activity</h3>
+<div class="row row-cols-3">
+    {% for review in reviews %}
+    <div class="col" style="margin-top: 10px;">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ review.get_user_name }}</h5>
+                <a href="{{ url_for('goto_biz', biz_id=review.biz_id) }}">
+                    {{ review.get_biz_name }}
+                </a>
+                <div class="star">
+                    {% for star in range(1, 6) %}
+                    {% if review.rating|int >= star %}
+                    <span
+                        class="star">⭐️</span><!-- Display a star if the rating is greater than or equal to the current star value -->
+                    {% else %}
+                    <span class="star">☆</span>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <p class="card-text">{{ review.text }}</p>
+            </div>
+            <div class="card-footer">
+                <button class="like-btn" title="found useful" value="{{ review.id }}">
+                    <span class="material-icons">thumb_up</span>
+                </button>
+                <!-- 
+                    <a href="#" style="text-decoration: none;" title="found useful">
+                    <img src="../static/images/like.png?{{ cache_id }}" alt="dashboard"
+                        style="height: 25px; width: 25px;">
+                </a>
+                -->
+                <small class="text-muted" style="margin-left: 5px;">{{ review.found_useful }}</small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<h3 class="text-center">Categories</h3>
+<div class="categories">
+    <div class="row row-cols-3">
+        {% for category in categories %}
+        <div class="col" style="margin-top: 10px;">
+            <div class="card huv" style="height: 100px; padding-top: 15px;">
+                <div class="card-body">
+                    <h5 class="card-title text-center">{{ category.name }}</h5>
+                    <!-- Add the number of businesses in category?-->
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock %}

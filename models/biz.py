@@ -86,15 +86,10 @@ class Biz(BaseModel, Base):
             owner_name = usr_obj.first_name + " " + usr_obj.last_name
             return owner_name
               
-
-        """
-        def amenities(self):
-            getter attribute returns the list of Amenity instances
+        def add_amenity(self, obj):
+            """ Adds amenity to a business
             from models.amenity import Amenity
-            amenity_list = []
-            all_amenities = models.storage.all(Amenity)
-            for amenity in all_amenities.values():
-                if amenity.biz_id == self.id:
-                    amenity_list.append(amenity)
-            return amenity_list
-        """
+            if obj is None:
+                return
+            """
+            pass
