@@ -29,11 +29,28 @@
                                             <p class="card-text">{{ review.text }}</p>
                                     </div>
                                     <div class="card-footer">
-                                        <button class="like-btn" title="found useful" value="{{ review.id }}">
-                                                <span class="material-icons">thumb_up</span>
-                                            </button>
-					    <small class="text-muted">{{ review.found_useful }}</small>
-                                    </div>
+                                        {% if review.id in current_user.fav_reviews %} <!-- review was liked already -->
+                                        <form action="" method="POST">
+                                                <input type="hidden" name="like" value="{{ review.id }}">
+                                                <div class="like-container">
+                                                        <button class="like-btn" type="submit" title="found useful">
+                                                                <span class="material-icons" id="liked">thumb_up</span>
+                                                        </button>
+                                                        <span class="text-muted" id="likes">{{ review.found_useful }}</span>
+                                                </div>
+                                        </form>
+                                        {% else %}
+                                        <form action="" method="POST">
+                                                <input type="hidden" name="like" value="{{ review.id }}">
+                                                <div class="like-container">
+                                                        <button class="like-btn" type="submit" title="found useful">
+                                                                <span class="material-icons">thumb_up</span>
+                                                        </button>
+                                                        <span class="text-muted" id="likes">{{ review.found_useful }}</span>
+                                                </div>
+                                        </form>
+                                        {% endif %}
+                                </div>
                             </div>
                     </div>
             {% endfor %}

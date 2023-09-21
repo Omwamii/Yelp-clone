@@ -1,31 +1,144 @@
 {% extends 'layout.html' %}
 {% block title %} Business {% endblock %}
 {% block body %}
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
-        {% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
-<h1 class="text-center">{{ biz.name }}</h1>
+<h1 class="text-center" id="biz-header">{{ biz.name }}</h1>
+<div class="row row-cols-4 text-center">
+        <div class="col" style="margin-top: 10px;">
+                <a href="{{ url_for('write_review', biz_id=biz.id) }}">Write a review</a>
+        </div>
+        <div class="col" style="margin-top: 10px;">
+                <a href="#">Save to collection</a>
+        </div>
+</div>
 <!-- add Profile pics for businesses-->
 <!-- NAV for quick actions -> save to collection, review, -->
-<h3 class="text-center">save to collection</h3>
-<a class="text-center" href="{{ url_for('write_review', biz_id=biz.id) }}">Write a review</a>
 <!-- Opening hours (optional?)-->
-<h3 class="text-center">Opening hours</h3>
 <!-- About the business-->
-<p class="text-center">{{ biz.description }}</p>
-<!-- Amenities -->
-<h4 class="text-center"> Biz amenities</h4>
-<!-- Ask the owner -->
-<h4 class="text-center">Ask the owner</h4>
+<div class="row row-cols-2 text-center" style="margin-top: 15px;">
+        <div class="col" style="margin-top: 5px;">
+                <div class="card">
+                        <div class="card-body">
+                                <h5 class="card-title text-center">About {{ biz.name }}</h5>
+                                <p class="card-text">{{ biz.description }}</p>
+                        </div>
+                </div>
+        </div>
+        <div class="col" style="margin-top: 5px;">
+                <div class="card">
+                        <div class="card-body">
+                                <h5 class="card-title text-center">
+                                        {{ biz.name }}'s Amenities
+                                </h5>
+                                <p class="card-text">
+                                        {% if not amenities %}
+                                        <small class="text-muted">Not available</small>
+                                        {% else %}
+                                        {{ amenities }}
+                                        {% endif %}
+                                </p>
+                        </div>
+                </div>
+        </div>
+</div>
 <!-- Reviews-->
-<p class="text-center">Write a review</p>
-                   <!-- Overall rating, stats by rate. clicking rate = filter-->
-                   <!-- Review -->
+<div class="row row-cols-2 text-center" style="width: 65%; margin-top: 15px; margin-bottom: 15px; margin-left: 150px;">
+        <div class="col">
+                <div class="card">
+                        <div class="card-body">
+                                <h5 class="card-title text-center">Opening hours</h5>
+                                {% if not biz.opening_hours %}
+                                <small class="text-muted">Not available</small>
+                                {% endif %}
+                        </div>
+                </div>
+        </div>
+        <div class="col">
+                <div class="card">
+                        <div class="card-body">
+                                <h5 class="card-title text-center">Overall ratings</h5>
+                                <div class="row row-cols-2">
+                                        <div class="col">
+                                                <div class="star">
+                                                        {% for star in range(1, 6) %}
+                                                                {% if rating|int >= star %}
+                                                                    <span class="star">⭐️</span><!-- Display a star if the rating is greater than or equal to the current star value -->
+                                                                {% else %}
+                                                                    <span class="star">☆</span> 
+                                                                {% endif %}
+                                                        {% endfor %}
+                                                </div>
+                                        </div>
+                                        <div class="col">
+                                                <p class="card-text">5 stars  ({{ rates['5'] }})</p>
+                                                <p class="card-text">4 stars  ({{ rates['4'] }})</p>
+                                                <p class="card-text">3 stars  ({{ rates['3'] }})</p>
+                                                <p class="card-text">2 stars  ({{ rates['2']}})</p>
+                                                <p class="card-text">1 star   ({{ rates['1'] }})</p>
+                                        </div>
+                                </div>
+                        </div>
+                        <div class="card-footer">
+                                <small class="text-muted">Average rating: {{'%0.2f'| format(avg_rating|float) }}</small>
+                        </div>
+                </div>
+        </div>
+</div>
+<h2 class="text-center">Reviews</h2>
+{% if reviews|length == 0 %}
+        <h1 class="text-center text-muted">No reviews yet</h1>
+{% else %}
+<div class="row row-cols-3" style="margin-left: 10px;"></div>
+        {% for review in reviews %}
+        <div class="col" style="width: 85%; margin-left: 85px; margin-top: 10px; margin-bottom: 15px;">
+                <div class="card">
+                        <div class="card-body">
+                                <div class="user-section">
+                                        <span class="card-title" style="font-weight: 650; font-size: 20px;">{{ review.get_user_name }}</span>
+                                        &nbsp;&nbsp;&nbsp;
+                                        <span style="font-weight: 200;">(0) Reviews</span>  
+                                </div>
+                                <div class="star">
+                                        {% for star in range(1, 6) %}
+                                        {% if review.rating|int >= star %}
+                                        <span
+                                                class="star">⭐️</span><!-- Display a star if the rating is greater than or equal to the current star value -->
+                                        {% else %}
+                                        <span class="star">☆</span>
+                                        {% endif %}
+                                        {% endfor %}
+                                </div>
+                                <p class="card-text">{{ review.text }}</p>
+                        </div>
+                        <div class="card-footer">
+                                {% if review.id in current_user.fav_reviews %} <!-- review was liked already -->
+                                <form action="" method="POST">
+                                        <input type="hidden" name="like" value="{{ review.id }}">
+                                        <div class="like-container">
+                                                <button class="like-btn" type="submit" title="found useful">
+                                                        <span class="material-icons" id="liked">thumb_up</span>
+                                                </button>
+                                                <span class="text-muted" id="likes">{{ review.found_useful }}</span>
+                                        </div>
+                                </form>
+                                {% else %}
+                                <form action="" method="POST">
+                                        <input type="hidden" name="like" value="{{ review.id }}">
+                                        <div class="like-container">
+                                                <button class="like-btn" type="submit" title="found useful">
+                                                        <span class="material-icons">thumb_up</span>
+                                                </button>
+                                                <span class="text-muted" id="likes">{{ review.found_useful }}</span>
+                                        </div>
+                                </form>
+                                {% endif %}
+                        </div>
+                </div>
+        </div>
+        {% endfor %}
+</div>
+{% endif %}
+</div>
+<!-- Overall rating, stats by rate. clicking rate = filter-->
+<!-- Review -->
                         <!-- Profile pic, number of reviews, name, photo (option), rating, review-->
 {% endblock %}

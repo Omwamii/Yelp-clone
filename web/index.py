@@ -9,7 +9,7 @@ from models.user import User
 from models.review import Review
 from models.category import Category
 from os import environ
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, LoginManager, login_required, logout_user, current_user
 from flask import session
 from models import storage
@@ -35,28 +35,38 @@ def close_db(error):
     storage.close()
 
 
-@app.route('/', strict_slashes=False)
+@app.route('/', methods=['GET', 'POST'], strict_slashes=False)
 def index():
     """ Home page """
     # fetch the most recent reviews made
-    rev_dict = storage.all(Review)
-    reviews = list()
-    for review in rev_dict.values():
-        if len(reviews) == 10:
-            break; # render only 10 latest reviews, load more in page
-        reviews.append(review)
-
-    # fetch business categories
-    cat_dict = storage.all(Category)
-    categories = list()
-    for category in cat_dict.values():
-        categories.append(category)
-
-    return render_template('index.html',
-                           reviews=reviews,
-                           categories=categories,
-                           cache_id=uuid.uuid4())
-
+    if request.method == "POST":
+        if request.form.get('like'):
+            if not current_user.is_authenticated:
+                print("User Not authenticated")
+                flash("Please login to complete action", category="warning")
+                return redirect(url_for('login'))
+            res = update_likes(request.form['like'])
+            if res != 200:
+                flash("Action was unsuccessful", category="danger") # error occured
+            else:
+                flash("Action was successful", category="success")
+        return redirect(url_for('index'))
+    else:
+        rev_dict = storage.all(Review)
+        reviews = list()
+        for review in rev_dict.values():
+            if len(reviews) == 6:
+                break; # render only 10 latest reviews, load more in page
+            reviews.append(review)
+        # fetch business categories
+        cat_dict = storage.all(Category)
+        categories = list()
+        for category in cat_dict.values():
+            categories.append(category)
+        return render_template('index.html',
+                               reviews=reviews,
+                               categories=categories,
+                               cache_id=uuid.uuid4())
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -182,11 +192,50 @@ def logout():
 def goto_biz(biz_id):
     """ go to a business """
     if request.method == "POST":
-        # implement adding business to favorite?
-        pass
+        # implement adding business to favorite & liking reviews
+        if request.form.get('like'):
+            if not current_user.is_authenticated:
+                print("User Not authenticated")
+                flash("Please login to complete action", category="warning")
+                return redirect(url_for('login'))
+            res = update_likes(request.form['like'])
+            if res != 200:
+                flash("Action was unsuccessful", category="danger") # error occured
+            else:
+                flash("Action was successful", category="success")
+        return redirect(url_for('goto_biz', biz_id=biz_id))
     else:
         biz_obj = storage.get(Biz, biz_id)
-        return render_template('business.html', biz=biz_obj, 
+        amenities = list()
+        print("Biz amenities ")
+        print(biz_obj.amenity_ids)
+        for amenity in biz_obj.amenity_ids:
+            amen_obj = storage.get(Amenity, amenity)
+            if amen_obj:
+                amenities.append(amen_obj)
+        print("Business reviews list ids")
+        print(biz_obj.reviews)
+        reviews = list()
+        count = 0
+        rating = 0
+        rates = {'5': 0, '4': 0, '3': 0, '2': 0, '1': 0}
+        for review in biz_obj.reviews:
+            count += 1
+            rating += int(review.rating)
+            rates[review.rating] += 1
+            reviews.append(review)
+        print(rates)
+        if len(reviews) == 0:
+            count = 1
+        avg = rating/count
+        round_rating = round(avg)
+            
+        return render_template('business.html', biz=biz_obj,
+                               reviews=reviews,
+                               rating=round_rating,
+                               avg_rating=avg,
+                               amenities=amenities,
+                               rates=rates,
                                cache_id=uuid.uuid4())
 
 @app.route('/bizes', strict_slashes=False)
@@ -198,15 +247,28 @@ def show_bizes():
         bizes.append(biz_obj)
     return render_template('bizes.html', bizes=bizes, cache_id=uuid.uuid4())
 
-@app.route('/reviews', strict_slashes=False)
+@app.route('/reviews', methods=['GET', 'POST'], strict_slashes=False)
 def show_reviews():
     """ Show general reviews """
-    rev_dict = storage.all(Review)
-    reviews = list()
-    for review in rev_dict.values():
-        reviews.append(review)
-    return render_template('reviews.html', reviews=reviews, 
-                           cache_id=uuid.uuid4())
+    if request.method == "POST":
+        if request.form.get('like'):
+            if not current_user.is_authenticated:
+                print("User Not authenticated")
+                flash("Please login to complete action", category="warning")
+                return redirect(url_for('login'))
+            res = update_likes(request.form['like'])
+            if res != 200:
+                flash("Action was unsuccessful", category="danger") # error occured
+            else:
+                flash("Action was successful", category="success")
+        return redirect(url_for('show_reviews'))
+    else:
+        rev_dict = storage.all(Review)
+        reviews = list()
+        for review in rev_dict.values():
+            reviews.append(review)
+        return render_template('reviews.html', reviews=reviews, 
+                               cache_id=uuid.uuid4())
 
 @app.route('/dashboard', strict_slashes=False)
 @login_required
@@ -286,12 +348,90 @@ def write_review(biz_id):
             flash("Review posted!", "success")
         else:
             print("Error creating review")
-            flash("There was an error processing your review", "error")
+            flash("There was an error processing your review", "danger")
         return redirect(url_for('goto_biz', biz_id=biz_id))
     else:
         biz_obj = storage.get(Biz,biz_id)
         return render_template('write_review.html', biz=biz_obj,
                                cache_id=uuid.uuid4())
+
+
+def update_likes(rev_id):
+    """ update review likes """
+    # url = f"http://192.168.100.100:5000/api/v1/reviews/{rev_id}
+    user = storage.get(User, current_user.id)
+    review = storage.get(Review, rev_id)
+    old_likes = review.found_useful
+    print(f"-----User {current_user.user_name}'s Favorite reviews ----")
+    print(user.fav_reviews)
+    print(f"Likes: {old_likes}")
+    likes = int(review.found_useful)
+    if rev_id in user.fav_reviews:
+        # User unliked, remove review from user's favs
+        print("Removing review from liked reviews")
+        user.fav_reviews.remove(rev_id)
+        likes -= 1
+    else:
+        # user liked review
+        print("Review added to user's favorites")
+        user.fav_reviews.append(rev_id)
+        if review.found_useful:
+            likes += 1
+        else:
+            likes = 1
+    review.found_useful = likes # update
+    print()
+    print(f"New user fav reviews: {user.fav_reviews}")
+    print(f"New likes: {review.found_useful}")
+    print()
+    review.save()
+    user.save()
+    storage.save()
+    upd_review = storage.get(Review, rev_id)
+    if old_likes == upd_review.found_useful:
+        # likes not updated successfully
+        return 500
+    else:
+        return 200
+
+
+@app.route('/update_review/<rev_id>', methods=['GET', 'POST'], strict_slashes=False)
+# @login_required # to like, need to login
+def update_review(rev_id):
+    """ update a review object """
+    if not current_user.is_authenticated:
+        print("Not authenticated")
+        flash("Please login to complete action", category="warning")
+        return redirect(url_for('login'))
+    url = f"http://192.168.100.100:5000/api/v1/reviews/{rev_id}"
+    data = request.json
+    print(data)
+
+    if 'found_useful' in data:
+        # user has liked a review, add review to fav_reviews
+        user = storage.get(User, current_user.id)
+        review = storage.get(Review, rev_id)
+        print("----- Favorite reviews ----")
+        print(user.fav_reviews)
+        print(f"Likes: {review.found_useful}")
+        if rev_id in user.fav_reviews:
+            # User unliked, remove review from user's favs
+            print("Removing review from liked reviews")
+            user.fav_reviews.remove(rev_id)
+        else:
+            # likes increased
+            print("Review added to user's favorites")
+            user.fav_reviews.append(rev_id)
+        user.save()
+        storage.save()
+
+    res = requests.put(url, json=data)
+    if res.status_code <= 201:
+        print("---- Review updated succesfully ----")
+    else:
+        print("Error updating review")
+        flash("There was an error updating your review", "danger")
+    return jsonify({"status_code": res.status_code})
 
 if __name__ == "__main__":
     """ Main Function """

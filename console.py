@@ -138,7 +138,7 @@ class HBNBCommand(cmd.Cmd):
                 if k in models.storage.all():
                     if len(args) > 2:
                         if len(args) > 3:
-                            if args[0] == "Place":
+                            if args[0] == "Biz":
                                 if args[2] in integers:
                                     try:
                                         args[3] = int(args[3])
