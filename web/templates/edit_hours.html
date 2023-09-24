@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block title %} Businesses {% endblock %}
+{% block body %}
+<h1 class="text-center" id="biz-header">Edit business operating hours</h1>
+<div class="container mt-4">
+  <form id="business-hours-form" method="POST" action="">
+    <div class="row">
+      <!-- Monday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="mon-from">Monday Opening: {{ biz.operating_hrs['Monday']['from'] }}</label>
+          <input type="time" class="form-control" id="mon-from" name="mon-from" value="{{ biz.operating_hrs['Monday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="mon-to">Monday Closing:</label>
+          <input type="time" class="form-control" id="mon-to" name="mon-to" value="{{ biz.operating_hrs['Monday']['to'] }}">
+        </div>
+      </div>
+      <!-- Tuesday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="tue-from">Tuesday Opening:</label>
+          <input type="time" class="form-control" id="tue-from" name="tue-from" value="{{ biz.operating_hrs['Tuesday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="tue-to">Tuesday Closing:</label>
+          <input type="time" class="form-control" id="tue-to" name="tue-to" value="{{ biz.operating_hrs['Tuesday']['to'] }}">
+        </div>
+      </div>
+      <!-- Wednesday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="wed-from">Wednesday Opening:</label>
+          <input type="time" class="form-control" id="wed-from" name="wed-from" value="{{ biz.operating_hrs['Wednesday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="wed-to">Wednesday Closing:</label>
+          <input type="time" class="form-control" id="wed-to" name="wed-to" value="{{ biz.operating_hrs['Wednesday']['to'] }}">
+        </div>
+      </div>
+      <!-- Thursday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="thurs-from">Thursday Opening:</label>
+          <input type="time" class="form-control" id="thurs-from" name="thurs-from" value="{{ biz.operating_hrs['Thursday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="thurs-to">Thursday Closing:</label>
+          <input type="time" class="form-control" id="thurs-to" name="thurs-to" value="{{ biz.operating_hrs['Thursday']['to'] }}">
+        </div>
+      </div>
+      <!-- Friday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="fri-from">Friday Opening:</label>
+          <input type="time" class="form-control" id="fri-from" name="fri-from" value="{{ biz.operating_hrs['Friday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="fri-to">Friday Closing:</label>
+          <input type="time" class="form-control" id="fri-to" name="fri-to" value="{{ biz.operating_hrs['Friday']['to'] }}">
+        </div>
+      </div>
+      <!-- Saturday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="sat-from">Saturday Opening:</label>
+          <input type="time" class="form-control" id="sat-from" name="sat-from" value="{{ biz.operating_hrs['Saturday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="sat-to">Saturday Closing:</label>
+          <input type="time" class="form-control" id="sat-to" name="sat-to" value="{{ biz.operating_hrs['Saturday']['to'] }}">
+        </div>
+      </div>
+      <!-- Sunday -->
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="sun-from">Sunday Opening:</label>
+          <input type="time" class="form-control" id="sun-from" name="sun-from" value="{{ biz.operating_hrs['Sunday']['from'] }}">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="form-group">
+          <label for="sun-to">Sunday Closing:</label>
+          <input type="time" class="form-control" id="sun-to" name="sun-to" value="{{ biz.operating_hrs['Sunday']['to'] }}">
+        </div>
+      </div>
+    </div>
+    
+    <div class="text-center mt-4">
+      <button type="submit" class="load-more">Save</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

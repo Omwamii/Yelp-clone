@@ -50,8 +50,8 @@ class Biz(BaseModel, Base):
         latitude = 0.0
         longitude = 0.0
         category_id = ""
-        reviews = []
         amenity_ids = []
+        operating_hrs = dict() # ?
 
     def __init__(self, *args, **kwargs):
         """initializes Biz"""

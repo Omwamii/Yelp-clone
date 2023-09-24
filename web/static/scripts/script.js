@@ -21,7 +21,7 @@ $(document).ready(function () {
   //   console.log(`New likes count: ${updatedLikes}`);
 
   //   const update_data = {
-  //     'found_useful': updatedLikes 
+  //     'found_useful': updatedLikes
   //   };
   //   const reviewId = likeBtn.val(); // id of the review object
 
@@ -44,9 +44,9 @@ $(document).ready(function () {
   //         likeBtn.css("color", "rgb(0, 0, 0)"); // review is unliked
   //       }
   //     },
-	//     error: function (error) {
-	// 	    console.error('Error updating likes :(', error);
-	//     }
+  //     error: function (error) {
+  // 	    console.error('Error updating likes :(', error);
+  //     }
   //   });
   // }
   // likeBtn.on('click', updateLikes);

@@ -12,7 +12,7 @@
 			  <p class="card-text">Full name: {{ current_user.first_name }} {{ current_user.last_name }}</p>
 			  <p class="card-text">Username: {{ current_user.user_name }}</p>
 			  <p class="card-text">Email: {{ current_user.email }}</p>
-			  <p class="card-text">Friends: {{ current_user.friends|length }}</p>
+			  <!-- <p class="card-text">Friends: {{ current_user.friends|length }}</p> -->
 			  <p class="card-text">Reviews written: {{ num_reviews }}</p>
 			  <p class="card-text">Favorite businesses: {{ current_user.fav_bizes|length }}</p>
 			  <p class="card-text">Favorite reviews: {{ current_user.fav_reviews|length }}</p>
@@ -35,8 +35,11 @@
 					    <a href="{{ url_for('my_bizes') }}">
 						    See your listed businesses
 					    </a><br>
-					    <a href="#">
+					    <a href="{{ url_for('fav_bizes') }}">
 						    See your favorite businesses
+					    </a><br>
+						<a href="{{ url_for('edit_bizes') }}">
+						    Edit your businesses
 					    </a>
                                     </div>
 				    <a href="{{ url_for('register_biz') }}">
@@ -53,7 +56,7 @@
 					    <a href="{{ url_for('my_reviews') }}">
                                                     See reviews you wrote
 					    </a><br>
-                                            <a href="#">
+						<a href="{{ url_for('fav_reviews') }}">
                                                     See your favorite reviews
                                             </a>
                                             <p class="card-text text-muted">To write a review, go to a business page</p>

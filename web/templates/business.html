@@ -2,12 +2,24 @@
 {% block title %} Business {% endblock %}
 {% block body %}
 <h1 class="text-center" id="biz-header">{{ biz.name }}</h1>
-<div class="row row-cols-4 text-center">
+<div class="row row-cols-2 text-center">
         <div class="col" style="margin-top: 10px;">
-                <a href="{{ url_for('write_review', biz_id=biz.id) }}">Write a review</a>
+                          <a href="{{ url_for('write_review', biz_id=biz.id) }}" style="text-decoration: none;">
+                                <button class="load-more">Write a review</button>
+                         </a>
         </div>
         <div class="col" style="margin-top: 10px;">
-                <a href="#">Save to collection</a>
+                <form action="" method="POST">
+                        <input type="hidden" name="like-biz" value="{{ biz.id }}">
+                        <button type="submit" class="load-more">
+                                {% if biz.id in current_user.fav_bizes %}
+                                Remove from collection
+                                {% else %}
+                                Save to collection
+                                {% endif %}
+                        </button>
+                </form>
+                        
         </div>
 </div>
 <!-- add Profile pics for businesses-->
@@ -33,7 +45,10 @@
                                         {% if not amenities %}
                                         <small class="text-muted">Not available</small>
                                         {% else %}
-                                        {{ amenities }}
+                                        {% for amenity in amenities %}
+                                        <small class="card-text" style="font-size: 18px;">{{ amenity.name }}</small>&nbsp;&nbsp;
+                                        <!-- <p class="card-text">{{ amenity.name }}</p> -->
+                                        {% endfor %}
                                         {% endif %}
                                 </p>
                         </div>
@@ -45,9 +60,18 @@
         <div class="col">
                 <div class="card">
                         <div class="card-body">
-                                <h5 class="card-title text-center">Opening hours</h5>
-                                {% if not biz.opening_hours %}
+                                <h5 class="card-title text-center">Operating hours</h5>
+                                {% if not biz.operating_hrs %}
                                 <small class="text-muted">Not available</small>
+                                {% else %}
+                                <p class="card-text">Monday &nbsp;&nbsp;&nbsp;&nbsp;{{ biz.operating_hrs['Monday']['from'] }} - {{ biz.operating_hrs['Monday']['to'] }}</p>
+                                <p class="card-text">Tuesday &nbsp;&nbsp;&nbsp;&nbsp; {{ biz.operating_hrs['Tuesday']['from'] }} - {{ biz.operating_hrs['Tuesday']['to'] }}</p>
+                                <p class="card-text">Wednesday &nbsp;&nbsp;&nbsp;&nbsp; {{ biz.operating_hrs['Wednesday']['from'] }} - {{ biz.operating_hrs['Wednesday']['to'] }}</p>
+                                <p class="card-text">Thursday &nbsp;&nbsp;&nbsp;&nbsp; {{ biz.operating_hrs['Thursday']['from'] }} - {{ biz.operating_hrs['Thursday']['to'] }}</p>
+                                <p class="card-text">Friday &nbsp;&nbsp;&nbsp;&nbsp; {{ biz.operating_hrs['Friday']['from'] }} - {{ biz.operating_hrs['Friday']['to'] }}</p>
+                                <p class="card-text">Saturday &nbsp;&nbsp;&nbsp;&nbsp; {{ biz.operating_hrs['Saturday']['from'] }} - {{ biz.operating_hrs['Saturday']['to'] }}</p>
+                                <p class="card-text">Sunday &nbsp;&nbsp;&nbsp;&nbsp; {{ biz.operating_hrs['Sunday']['from'] }} - {{ biz.operating_hrs['Sunday']['to'] }}</p>
+                                                        
                                 {% endif %}
                         </div>
                 </div>
@@ -95,7 +119,8 @@
                                 <div class="user-section">
                                         <span class="card-title" style="font-weight: 650; font-size: 20px;">{{ review.get_user_name }}</span>
                                         &nbsp;&nbsp;&nbsp;
-                                        <span style="font-weight: 200;">(0) Reviews</span>  
+                                        <div class="date">Posted on {{ review.created_at.strftime('%Y-%m-%d') }}</div>
+                                        <!-- <span style="font-weight: 200;">(0) Reviews</span>   -->
                                 </div>
                                 <div class="star">
                                         {% for star in range(1, 6) %}

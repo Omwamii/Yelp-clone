@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %} Add Amenities to Business {% endblock %}
+{% block body %}
+<h1 class="text-center" id="biz-header">Edit Amenities</h1>
+<div class="row row-cols-2" style="margin-left: 150px;">
+    <div class="card" style="margin-left: 10px; width: 400px;">
+        <div class="card-body">
+            <h5 class="card-title text-center">Amenities</h5>
+            <form id="amenities-form" method="POST" action="">
+                <div class="row">
+                    <div class="col-md-6">
+                        {% for amenity in amenities %}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="amenity-{{ amenity.id }}"
+                                name="available" value="{{ amenity.id }}">
+                            <label class="form-check-label" for="amenity-{{ amenity.id }}">{{ amenity.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="load-more">Add amenities</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+    <div class="card" style="margin-left: 10px;">
+        <div class="card-body">
+            <h5 class="card-title text-center">{{ biz.name }}'s Amenities</h5>
+            <form id="amenities-form" method="POST" action="">
+                <div class="row">
+                    <div class="col-md-6">
+                        {% for amen in biz_amenities %}
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="amenity-{{ amen.id }}"
+                                name="biz-amens" value="{{ amen.id }}">
+                            <label class="form-check-label" for="amenity-{{ amen.id }}">{{ amen.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="load-more">Remove amenities</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

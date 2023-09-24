@@ -23,6 +23,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 app.secret_key = b'd_~!H|-%^#@lM])*$/<'
+app.config['MESSAGE_FLASHING_OPTIONS'] = {'duration': 5} # not working?
 # bcrypt = Bcrypt(app)
 
 # app.jinja_env.trim_blocks = True
@@ -193,6 +194,9 @@ def goto_biz(biz_id):
     """ go to a business """
     if request.method == "POST":
         # implement adding business to favorite & liking reviews
+        if not current_user.is_authenticated:
+            flash("PLease Login to complete action", category="warning")
+            return redirect(url_for('login'))
         if request.form.get('like'):
             if not current_user.is_authenticated:
                 print("User Not authenticated")
@@ -203,6 +207,18 @@ def goto_biz(biz_id):
                 flash("Action was unsuccessful", category="danger") # error occured
             else:
                 flash("Action was successful", category="success")
+        if request.form.get('like-biz'):
+            # implement adding business to collection
+            biz_id = request.form['like-biz']
+            user = storage.get(User, current_user.id)
+            if biz_id in user.fav_bizes:
+                # remove business from collection
+                user.fav_bizes.remove(biz_id)
+            else:
+                # add business to collection
+                user.fav_bizes.append(biz_id)
+            user.save()
+            storage.save()
         return redirect(url_for('goto_biz', biz_id=biz_id))
     else:
         biz_obj = storage.get(Biz, biz_id)
@@ -294,7 +310,18 @@ def my_bizes():
     if request.method == "POST":
         # Handle business deletion, for now
         biz_id = request.form.get('id')
-        print(f"Tried deleting business {biz_id}")
+        biz_obj = storage.get(Biz, biz_id)
+        # first start by deleting all reviews related to the biz
+        biz_reviews = list()
+        rev_list = storage.all(Review).values()
+        for rev in rev_list:
+            if rev.biz_id == biz_id:
+                biz_reviews.append(rev)
+        for review in biz_reviews:
+            storage.delete(review)
+        storage.delete(biz_obj)
+        storage.save()
+        flash("Business deleted successfully", category="success")
         return redirect(url_for('my_bizes'))
         # make api call to drop the business
     else:
@@ -311,9 +338,11 @@ def my_bizes():
 def my_reviews():
     """ show reviews posted by logged in user """
     if request.method == "POST":
-        # Handle business deletion, for now
+        # Handle Review deletion, for now
         rev_id = request.form.get('id')
-        print(f"Tried deleting Review {rev_id}")
+        rev_obj = storage.get(Review, rev_id)
+        storage.delete(rev_obj) # delete the review object
+        storage.save()
         return redirect(url_for('my_reviews'))
         # make api call to drop the Review (from jquery)
     else:
@@ -333,13 +362,17 @@ def write_review(biz_id):
     if request.method == "POST":
         form_data = request.form
         text = form_data['review']
+        if form_data.get('rate'):
+            rating = form_data['rate']
+        else:
+            rating = 1
         user_id = current_user.id
         biz_id = biz_id
 
         data = {'user_id': user_id, 'biz_id': biz_id,
-                'text': text}
+                'rating': rating, 'text': text}
         # create review obj using api
-        url = f"http://192.168.100.100:5000/api/v1/bizes/{biz_id}/reviews"
+        url = f"http://192.168.99.101:5000/api/v1/bizes/{biz_id}/reviews"
 
         res = requests.post(url, json=data)
 
@@ -432,6 +465,166 @@ def update_review(rev_id):
         print("Error updating review")
         flash("There was an error updating your review", "danger")
     return jsonify({"status_code": res.status_code})
+
+@app.route('/fav_reviews', methods=['GET', 'POST'], strict_slashes=False)
+@login_required
+def fav_reviews():
+    """ show reviews liked by user """
+    if request.method == "POST":
+        rev_id = request.form.get('id') # get review id from form
+        res = update_likes(rev_id)
+        if res == 200:
+            flash("Review removed successfully", category="success")
+        else:
+            flash("Action failed", category="danger")
+        return redirect(url_for('fav_reviews'))
+        # make api call to drop the Review (from jquery)
+    else:
+        reviews = list()
+        print("User's fav reviews")
+        print(current_user.fav_reviews)
+        for rev in current_user.fav_reviews:
+            review = storage.get(Review, rev)
+            reviews.append(review)
+
+        return render_template('fav_reviews.html', reviews=reviews,
+                               cache_id=uuid.uuid4())
+
+@app.route('/fav_bizes', methods=['GET', 'POST'], strict_slashes=False)
+@login_required
+def fav_bizes():
+    """ show businesses added to collection by user """
+    if request.method == "POST":
+        biz_id = request.form.get('id')
+        user = storage.get(User, current_user.id)
+        print("---- FAV BIZES BEFORE DELETE ----")
+        print(user.fav_bizes)
+        user.fav_bizes.remove(biz_id)
+        user.save()
+        storage.save()
+        print("--- AFTER DELETE ---")
+        print(user.fav_bizes)
+        return redirect(url_for('fav_bizes'))
+        # make api call to drop the Review (from jquery)
+    else:
+        bizes = list()
+        print("User's fav businesses")
+        print(current_user.fav_bizes)
+        for biz in current_user.fav_bizes:
+            business = storage.get(Biz, biz)
+            bizes.append(business)
+
+        return render_template('fav_bizes.html', bizes=bizes,
+                               cache_id=uuid.uuid4())
+
+@app.route('/edit_bizes', methods=['GET', 'POST'], strict_slashes=False)
+@login_required
+def edit_bizes():
+    """ show businesses listed by logged in user """
+    if request.method == "POST":
+        return redirect(url_for('edit_bizes'))
+        # make api call to drop the business
+    else:
+        biz_dict = storage.all(Biz)
+        bizes = list()
+        for biz in biz_dict.values():
+            if biz.user_id == current_user.id:
+                bizes.append(biz)
+        return render_template('edit_bizes.html', bizes=bizes,
+                               cache_id=uuid.uuid4())
+
+
+def are_dicts_identical(dict1, dict2):
+    """ check if 2 dicts are identical """
+    if len(dict1) != len(dict2):
+        return False
+
+    for key, value in dict1.items():
+        if key not in dict2 or dict2[key] != value:
+            return False
+
+    return True
+@app.route('/hrs/<biz_id>', methods=['GET', 'POST'], strict_slashes=False)
+@login_required
+def edit_hrs(biz_id):
+    """ Edit business opening hrs """
+    biz = storage.get(Biz, biz_id)
+    if request.method == "POST":
+        form = request.form
+        old_time = biz.operating_hrs
+        hrs = {'Monday': {'from': form['mon-from'], 'to': form['mon-to']}, 
+               'Tuesday': {'from': form['tue-from'], 'to': form['tue-to']},
+               'Wednesday': {'from': form['wed-from'], 'to': form['wed-to']},
+               'Thursday': {'from': form['thurs-from'], 'to': form['thurs-to']},
+               'Friday': {'from': form['fri-from'], 'to': form['fri-to']},
+               'Saturday': {'from': form['sat-from'], 'to': form['sat-to']},
+               'Sunday': {'from': form['sun-from'], 'to': form['sun-to']}
+               }
+
+        print("--- Time changes ---")
+        print(hrs)
+        print("--------------------")
+
+        biz.operating_hrs = hrs
+        biz.save()
+        storage.save()
+        print
+        if not are_dicts_identical(old_time, hrs):
+            # changes were made
+            flash("Operating hours updated", category="success")
+        return redirect(url_for('edit_hrs', biz_id=biz_id))
+    else:
+        return render_template('edit_hours.html', biz=biz)
+
+@app.route('/amenities/<biz_id>', methods=['GET', 'POST'], strict_slashes=False)
+@login_required
+def edit_amen(biz_id):
+    """ Edit business opening hrs """
+    biz_obj = storage.get(Biz, biz_id)
+    if request.method == "POST":
+        add_amens = request.form.getlist('available')
+        for amen in add_amens:
+            biz_obj.amenity_ids.append(amen) # add to list of amenities
+
+        to_remove = request.form.getlist('biz-amens')
+        for amenity in to_remove:
+            biz_obj.amenity_ids.remove(amenity) # remove from list of amens
+        biz_obj.save()
+        storage.save()
+        return redirect(url_for('edit_amen', biz_id=biz_id))
+    else:
+        amens = storage.all(Amenity).values()
+        # Create a list of amenity IDs associated with the business
+        biz_amenity_ids = biz_obj.amenity_ids
+        biz_amenities = list()
+        for amen_id in biz_amenity_ids:
+            amen = storage.get(Amenity, amen_id)
+            biz_amenities.append(amen)
+        print(biz_amenities)
+        
+        # Filter out amenities that are already associated with the business
+        available_amenities = [amenity for amenity in amens if amenity.id not in biz_amenity_ids]
+        return render_template('edit_amen.html',
+                               biz=biz_obj,
+                               amenities=available_amenities, 
+                               biz_amenities=biz_amenities)
+
+@app.route('/desc/<biz_id>', methods=['GET', 'POST'], strict_slashes=False)
+@login_required
+def edit_desc(biz_id):
+    """ Edit business description """
+    if request.method == "POST":
+        text = request.form['description']
+        biz = storage.get(Biz, biz_id)
+        biz.description = text
+        biz.save()
+        storage.save()
+        flash("Description updated!", category="success")
+        return redirect(url_for('edit_desc', biz_id=biz_id))
+    else:
+        biz_obj = storage.get(Biz, biz_id)
+        return render_template('edit_desc.html', biz=biz_obj)
+
 
 if __name__ == "__main__":
     """ Main Function """
