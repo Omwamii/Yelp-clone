@@ -1,5 +1,3 @@
-
-![Grumble_2](https://github.com/Omwamii/Yelp-clone/assets/100716410/42bce280-9035-45d9-93a2-0cf6868dd8b2)
 # Grumble - A web-based business reviewing platform
 
 Grumble is a web application designed to empower local businesses by providing a platform for user-generated reviews and ratings. Our mission is to create an environment where users can discover and support local businesses, share their experiences, and make informed decisions about where to spend their time and money.
