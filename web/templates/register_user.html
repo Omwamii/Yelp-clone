@@ -1,16 +1,7 @@
 {% extends 'layout.html' %}
 {% block title %}Register{% endblock %}
 {% block body %}
-<h2 class="text-center">Register</h2>
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-<ul>
-	{% for message in messages %}
-	<li>{{ message }}</li>
-	{% endfor %}
-</ul>
-{% endif %}
-{% endwith %}
+<h2 class="text-center" id="biz-header">Register</h2>
     <form action="" method="post">
 	    <div class="form-group" style="margin-bottom: 10px; margin-left: 10px; width: 97%;">
             <input class="form-control" autofocus type="text" name="fname" placeholder="First name">
