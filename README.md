@@ -21,8 +21,8 @@ Grumble is a web application designed to empower local businesses by providing a
 
 1. Clone the repository.
 2. Run application at the root using `python3 -m web.index'
-   Run the API at the root using `python3 -m api.v1.app`
-3. Access the application in your browser at `http://localhost:5000`.
+3. Run the API at the root using `python3 -m api.v1.app`
+4. Access the application in your browser at `http://localhost:5000`.
 
 ## Contributing
 
