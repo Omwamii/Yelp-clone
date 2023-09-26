@@ -26,11 +26,7 @@ Grumble is a web application designed to empower local businesses by providing a
 
 ## Contributing
 
-We welcome contributions to enhance the project further. Please check out our [Contribution Guidelines](CONTRIBUTING.md) for details.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+We welcome contributions to enhance the project further.
 
 ## Acknowledgments
 
