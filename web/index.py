@@ -11,9 +11,10 @@ from models.category import Category
 from os import environ
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_user, LoginManager, login_required, logout_user, current_user
-from flask import session
+# from flask import session
 from models import storage
 import requests
+from flask import jsonify
 # from flask_bcrypt import Bcrypt
 from passlib.hash import sha256_crypt
 import uuid
@@ -43,7 +44,6 @@ def index():
     if request.method == "POST":
         if request.form.get('like'):
             if not current_user.is_authenticated:
-                print("User Not authenticated")
                 flash("Please login to complete action", category="warning")
                 return redirect(url_for('login'))
             res = update_likes(request.form['like'])
@@ -55,16 +55,14 @@ def index():
     else:
         rev_dict = storage.all(Review)
         reviews = list()
-        for review in rev_dict.values():
-            if len(reviews) == 6:
-                break; # render only 10 latest reviews, load more in page
-            reviews.append(review)
+        sorted_reviews = sorted(rev_dict.values(), key=lambda review: review.created_at, reverse=True)
+        reviews = sorted_reviews[:6] # fetch latest 6 reviews
         # fetch business categories
         cat_dict = storage.all(Category)
-        categories = list()
-        for category in cat_dict.values():
-            categories.append(category)
+        categories = cat_dict.values()
+        cities = storage.all(City).values()
         return render_template('index.html',
+                               cities=cities,
                                reviews=reviews,
                                categories=categories,
                                cache_id=uuid.uuid4())
@@ -83,7 +81,7 @@ def login():
 
         all_users = storage.all(User)
         user = None
-        for u_id, u_obj in all_users.items():
+        for u_obj in all_users.values():
             if u_obj.user_name == u_name:
                 user = u_obj
         if user is None:
@@ -95,7 +93,7 @@ def login():
         if sha256_crypt.verify(passwd, user.password):
             print("---- Passwords match! Auth successful ----")
             flash("Logged in successfuly", category="success")
-            login_user(user) # passwords match
+            login_user(user)
             return redirect(url_for('dashboard'))
         else:
             flash("Wrong username or password")
@@ -121,7 +119,7 @@ def register_user():
             return redirect(url_for('register_user'))
 
         all_users = storage.all(User)
-        for obj_id, u_obj in all_users.items():
+        for u_obj in all_users.values():
             if u_obj.user_name == u_name:
                 # flash error: user not unique
                 flash("Username already exists!", category="warning")
@@ -133,7 +131,7 @@ def register_user():
         data = {'first_name': fname, 'last_name': lname,
                 'user_name': u_name, 'email': email,
                 'password': hashed_pass}
-        url = "http://192.168.100.100:5000/api/v1/users/" # app API
+        url = "http://127.0.0.1:5000/api/v1/users/" # app API
 
         res = requests.post(url, json=data)
         if res.status_code > 201:
@@ -162,23 +160,21 @@ def register_biz():
                 'description': description, 'latitude': lat, 
                 'longitude': long, 'category_id': category_id}
 
-        url = f'http://192.168.100.100:5000/api/v1/cities/{city_id}/bizes'
+        url = f'http://127.0.0.1:5000/api/v1/cities/{city_id}/bizes'
         res = requests.post(url, json=data)
         if res.status_code > 201:
             print(f"Error creating business account: {res.status_code}")
         else:
             print("Business account created successfuly")
-        return redirect(url_for('goto_biz', biz_id=2)) # redirect to biz pg
+        response_json = res.json()
+        print(response_json)
+        return redirect(url_for('goto_biz', biz_id=response_json['id'])) # redirect to biz pg
     else:
         # make request to get all biz categories
         category_dict = storage.all(Category)  # list of categories to select
-        categories = list()
-        for cat_id, cat_obj in category_dict.items():
-            categories.append(cat_obj)
+        categories = category_dict.values()
         city_dict = storage.all(City)
-        cities = list()
-        for city_id, city_obj in city_dict.items():
-            cities.append(city_obj)
+        cities = city_dict.values()
         return render_template('register_biz.html', categories=categories,
                                cities=cities, cache_id=uuid.uuid4())
 
@@ -198,8 +194,8 @@ def goto_biz(biz_id):
             flash("PLease Login to complete action", category="warning")
             return redirect(url_for('login'))
         if request.form.get('like'):
+            # liking reviews
             if not current_user.is_authenticated:
-                print("User Not authenticated")
                 flash("Please login to complete action", category="warning")
                 return redirect(url_for('login'))
             res = update_likes(request.form['like'])
@@ -211,38 +207,35 @@ def goto_biz(biz_id):
             # implement adding business to collection
             biz_id = request.form['like-biz']
             user = storage.get(User, current_user.id)
+            biz = storage.get(Biz, biz_id)
             if biz_id in user.fav_bizes:
                 # remove business from collection
-                user.fav_bizes.remove(biz_id)
+                user.fav_bizes.pop(biz_id)
             else:
                 # add business to collection
-                user.fav_bizes.append(biz_id)
+                user.fav_bizes[biz_id] = biz
             user.save()
             storage.save()
         return redirect(url_for('goto_biz', biz_id=biz_id))
     else:
         biz_obj = storage.get(Biz, biz_id)
         amenities = list()
-        print("Biz amenities ")
-        print(biz_obj.amenity_ids)
-        for amenity in biz_obj.amenity_ids:
-            amen_obj = storage.get(Amenity, amenity)
-            if amen_obj:
-                amenities.append(amen_obj)
-        print("Business reviews list ids")
-        print(biz_obj.reviews)
+
+        for amenity in biz_obj.amenities.values():
+            amenities.append(amenity)
+
         reviews = list()
         count = 0
         rating = 0
-        rates = {'5': 0, '4': 0, '3': 0, '2': 0, '1': 0}
+        rates = {'5': 0, '4': 0, '3': 0, '2': 0, '1': 0} # reviews ratings
         for review in biz_obj.reviews:
             count += 1
             rating += int(review.rating)
-            rates[review.rating] += 1
+            rates[str(review.rating)] += 1
             reviews.append(review)
-        print(rates)
-        if len(reviews) == 0:
-            count = 1
+            
+        if len(biz_obj.reviews) == 0:
+            count = 1 # prevent zero division error
         avg = rating/count
         round_rating = round(avg)
             
@@ -257,19 +250,42 @@ def goto_biz(biz_id):
 @app.route('/bizes', strict_slashes=False)
 def show_bizes():
     """ Show businesses """
-    bizes_dict = storage.all(Biz)
-    bizes = list()
-    for biz_id, biz_obj in bizes_dict.items():
-        bizes.append(biz_obj)
+    bizes = storage.all(Biz).values()
     return render_template('bizes.html', bizes=bizes, cache_id=uuid.uuid4())
+
+
+@app.route('/biz/<category>', strict_slashes=False)
+def bizes_by_category(category):
+    """ Show businesses filtered by category """
+    bizes = storage.all(Biz).values()
+    filtered_bizes = list()
+    for biz in bizes:
+        if biz.get_category == category:
+            filtered_bizes.append(biz)
+    return render_template('bizes_category.html', bizes=filtered_bizes,
+                           category=category,
+                             cache_id=uuid.uuid4())
+
+@app.route('/bizes/<city>', strict_slashes=False)
+def bizes_by_city(city):
+    """ Show businesses filtered by category """
+    bizes = storage.all(Biz).values()
+    filtered_bizes = list()
+    for biz in bizes:
+        city_obj = storage.get(City, biz.city_id)
+        if city_obj.name == city:
+            filtered_bizes.append(biz)
+    return render_template('bizes_city.html', bizes=filtered_bizes,
+                           city=city,
+                             cache_id=uuid.uuid4())
 
 @app.route('/reviews', methods=['GET', 'POST'], strict_slashes=False)
 def show_reviews():
     """ Show general reviews """
     if request.method == "POST":
         if request.form.get('like'):
+            # user cannot like if not logged in
             if not current_user.is_authenticated:
-                print("User Not authenticated")
                 flash("Please login to complete action", category="warning")
                 return redirect(url_for('login'))
             res = update_likes(request.form['like'])
@@ -281,8 +297,8 @@ def show_reviews():
     else:
         rev_dict = storage.all(Review)
         reviews = list()
-        for review in rev_dict.values():
-            reviews.append(review)
+        sorted_reviews = sorted(rev_dict.values(), key=lambda review: review.created_at, reverse=True)
+        reviews = sorted_reviews[:]
         return render_template('reviews.html', reviews=reviews, 
                                cache_id=uuid.uuid4())
 
@@ -290,11 +306,10 @@ def show_reviews():
 @login_required
 def dashboard():
     """ render dashboard """
-    print("printing reviews")
-    print(current_user.reviews)
     # fetch number of reviews (to display)
     rev_objs = storage.all(Review)
     revs = list()
+    # find number of reviews written by user
     for rev in rev_objs.values():
         if rev.user_id == current_user.id:
             revs.append(rev)
@@ -311,7 +326,8 @@ def my_bizes():
         # Handle business deletion, for now
         biz_id = request.form.get('id')
         biz_obj = storage.get(Biz, biz_id)
-        # first start by deleting all reviews related to the biz
+
+        # deleting all reviews related to the biz
         biz_reviews = list()
         rev_list = storage.all(Review).values()
         for rev in rev_list:
@@ -323,7 +339,6 @@ def my_bizes():
         storage.save()
         flash("Business deleted successfully", category="success")
         return redirect(url_for('my_bizes'))
-        # make api call to drop the business
     else:
         biz_dict = storage.all(Biz)
         bizes = list()
@@ -372,16 +387,16 @@ def write_review(biz_id):
         data = {'user_id': user_id, 'biz_id': biz_id,
                 'rating': rating, 'text': text}
         # create review obj using api
-        url = f"http://192.168.99.101:5000/api/v1/bizes/{biz_id}/reviews"
+        url = f"http://127.0.0.1:5000/api/v1/bizes/{biz_id}/reviews"
 
         res = requests.post(url, json=data)
 
         if res.status_code <= 201:
             print("Review posted successfully")
-            flash("Review posted!", "success")
+            flash("Review posted!", category="success")
         else:
-            print("Error creating review")
-            flash("There was an error processing your review", "danger")
+            print(f"Error creating review {res.status_code}")
+            flash("There was an error posting your review", category="danger")
         return redirect(url_for('goto_biz', biz_id=biz_id))
     else:
         biz_obj = storage.get(Biz,biz_id)
@@ -402,16 +417,16 @@ def update_likes(rev_id):
     if rev_id in user.fav_reviews:
         # User unliked, remove review from user's favs
         print("Removing review from liked reviews")
-        user.fav_reviews.remove(rev_id)
+        user.fav_reviews.pop(rev_id)
         likes -= 1
     else:
         # user liked review
         print("Review added to user's favorites")
-        user.fav_reviews.append(rev_id)
+        user.fav_reviews[rev_id] = review
         if review.found_useful:
             likes += 1
         else:
-            likes = 1
+            likes = 1 # in case attribute wasn't set yet
     review.found_useful = likes # update
     print()
     print(f"New user fav reviews: {user.fav_reviews}")
@@ -420,51 +435,12 @@ def update_likes(rev_id):
     review.save()
     user.save()
     storage.save()
-    upd_review = storage.get(Review, rev_id)
+    upd_review = storage.get(Review, rev_id) # fetch review to confirm update
     if old_likes == upd_review.found_useful:
         # likes not updated successfully
         return 500
     else:
         return 200
-
-
-@app.route('/update_review/<rev_id>', methods=['GET', 'POST'], strict_slashes=False)
-# @login_required # to like, need to login
-def update_review(rev_id):
-    """ update a review object """
-    if not current_user.is_authenticated:
-        print("Not authenticated")
-        flash("Please login to complete action", category="warning")
-        return redirect(url_for('login'))
-    url = f"http://192.168.100.100:5000/api/v1/reviews/{rev_id}"
-    data = request.json
-    print(data)
-
-    if 'found_useful' in data:
-        # user has liked a review, add review to fav_reviews
-        user = storage.get(User, current_user.id)
-        review = storage.get(Review, rev_id)
-        print("----- Favorite reviews ----")
-        print(user.fav_reviews)
-        print(f"Likes: {review.found_useful}")
-        if rev_id in user.fav_reviews:
-            # User unliked, remove review from user's favs
-            print("Removing review from liked reviews")
-            user.fav_reviews.remove(rev_id)
-        else:
-            # likes increased
-            print("Review added to user's favorites")
-            user.fav_reviews.append(rev_id)
-        user.save()
-        storage.save()
-
-    res = requests.put(url, json=data)
-    if res.status_code <= 201:
-        print("---- Review updated succesfully ----")
-    else:
-        print("Error updating review")
-        flash("There was an error updating your review", "danger")
-    return jsonify({"status_code": res.status_code})
 
 @app.route('/fav_reviews', methods=['GET', 'POST'], strict_slashes=False)
 @login_required
@@ -480,13 +456,7 @@ def fav_reviews():
         return redirect(url_for('fav_reviews'))
         # make api call to drop the Review (from jquery)
     else:
-        reviews = list()
-        print("User's fav reviews")
-        print(current_user.fav_reviews)
-        for rev in current_user.fav_reviews:
-            review = storage.get(Review, rev)
-            reviews.append(review)
-
+        reviews = current_user.fav_reviews.values()
         return render_template('fav_reviews.html', reviews=reviews,
                                cache_id=uuid.uuid4())
 
@@ -495,11 +465,12 @@ def fav_reviews():
 def fav_bizes():
     """ show businesses added to collection by user """
     if request.method == "POST":
+        # handle form posted to remove biz from collection
         biz_id = request.form.get('id')
         user = storage.get(User, current_user.id)
         print("---- FAV BIZES BEFORE DELETE ----")
         print(user.fav_bizes)
-        user.fav_bizes.remove(biz_id)
+        user.fav_bizes.pop(biz_id)
         user.save()
         storage.save()
         print("--- AFTER DELETE ---")
@@ -507,13 +478,7 @@ def fav_bizes():
         return redirect(url_for('fav_bizes'))
         # make api call to drop the Review (from jquery)
     else:
-        bizes = list()
-        print("User's fav businesses")
-        print(current_user.fav_bizes)
-        for biz in current_user.fav_bizes:
-            business = storage.get(Biz, biz)
-            bizes.append(business)
-
+        bizes = current_user.fav_bizes.values()
         return render_template('fav_bizes.html', bizes=bizes,
                                cache_id=uuid.uuid4())
 
@@ -551,7 +516,6 @@ def edit_hrs(biz_id):
     biz = storage.get(Biz, biz_id)
     if request.method == "POST":
         form = request.form
-        old_time = biz.operating_hrs
         hrs = {'Monday': {'from': form['mon-from'], 'to': form['mon-to']}, 
                'Tuesday': {'from': form['tue-from'], 'to': form['tue-to']},
                'Wednesday': {'from': form['wed-from'], 'to': form['wed-to']},
@@ -565,6 +529,7 @@ def edit_hrs(biz_id):
         print(hrs)
         print("--------------------")
 
+        old_time = biz.operating_hrs
         biz.operating_hrs = hrs
         biz.save()
         storage.save()
@@ -584,26 +549,23 @@ def edit_amen(biz_id):
     if request.method == "POST":
         add_amens = request.form.getlist('available')
         for amen in add_amens:
-            biz_obj.amenity_ids.append(amen) # add to list of amenities
+            amenity = storage.get(Amenity, amen)
+            biz_obj.amenities[amen] = amenity # add to list of amenities
 
         to_remove = request.form.getlist('biz-amens')
-        for amenity in to_remove:
-            biz_obj.amenity_ids.remove(amenity) # remove from list of amens
+        for amen_id in to_remove:
+            biz_obj.amenities.pop(amen_id) # remove from list of amens
         biz_obj.save()
         storage.save()
         return redirect(url_for('edit_amen', biz_id=biz_id))
     else:
         amens = storage.all(Amenity).values()
         # Create a list of amenity IDs associated with the business
-        biz_amenity_ids = biz_obj.amenity_ids
-        biz_amenities = list()
-        for amen_id in biz_amenity_ids:
-            amen = storage.get(Amenity, amen_id)
-            biz_amenities.append(amen)
+        biz_amenities = biz_obj.amenities.values()
         print(biz_amenities)
         
         # Filter out amenities that are already associated with the business
-        available_amenities = [amenity for amenity in amens if amenity.id not in biz_amenity_ids]
+        available_amenities = [amenity for amenity in amens if amenity.id not in biz_obj.amenities]
         return render_template('edit_amen.html',
                                biz=biz_obj,
                                amenities=available_amenities, 

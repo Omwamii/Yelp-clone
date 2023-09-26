@@ -58,12 +58,30 @@
     <div class="row row-cols-3">
         {% for category in categories %}
         <div class="col" style="margin-top: 10px;">
-            <div class="card huv" style="height: 100px; padding-top: 15px;">
-                <div class="card-body">
-                    <h5 class="card-title text-center">{{ category.name }}</h5>
-                    <!-- Add the number of businesses in category?-->
+            <a href="{{ url_for('bizes_by_category', category=category.name) }}" id="an">
+                <div class="card huv" style="height: 100px; padding-top: 15px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ category.name }}</h5>
+                        <!-- Add the number of businesses in category?-->
+                    </div>
                 </div>
-            </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<h3 class="text-center">Cities</h3>
+<div class="categories">
+    <div class="row row-cols-3" style="margin-bottom: 10px;">
+        {% for city in cities %}
+        <div class="col" style="margin-top: 10px;">
+            <a href="{{ url_for('bizes_by_city', city=city.name) }}" id="an">
+                <div class="card huv" style="height: 100px; padding-top: 15px;">
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ city.name }}</h5>
+                    </div>
+                </div>
+            </a>
         </div>
         {% endfor %}
     </div>

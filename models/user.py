@@ -7,7 +7,7 @@ from os import getenv
 import sqlalchemy
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
-from hashlib import md5
+# from hashlib import md5
 
 
 class User(BaseModel, Base):
@@ -33,10 +33,9 @@ class User(BaseModel, Base):
         last_name = ""
         user_name = ""
         is_active = True # manage account status
-        fav_bizes = []
-        fav_reviews = []
-        reviews = []
-
+        fav_bizes = dict()
+        fav_reviews = dict()
+        reviews = list()
     def __init__(self, *args, **kwargs):
         """initializes user"""
         super().__init__(*args, **kwargs)

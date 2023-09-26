@@ -17,6 +17,10 @@
     a:hover {
 	    text-decoration: underline;
     }
+
+    #an {
+        text-decoration: none;
+    }
     a:hover button {
         text-decoration: none;
     }
@@ -171,7 +175,7 @@
 
 /* Header styles */
 header {
-    background-color: crimson;
+    background-color: grey;
     color: white;
     padding: 10px 0;
     text-align: center;
@@ -199,7 +203,7 @@ header a {
     background-position: center;
     text-align: center;
     padding: 100px 0;
-    color: white;
+    color: black;
 }
 
 #hero h1 {
@@ -281,8 +285,8 @@ header a {
 
 /* Footer styles */
 footer {
-    background-color: crimson;
-    color: white;
+    /* background-color: crimson; */
+    color: black;
     text-align: center;
     padding: 10px 0;
 }

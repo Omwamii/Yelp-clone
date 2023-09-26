@@ -85,8 +85,6 @@ def post_review(biz_id):
     data['biz_id'] = biz_id
     instance = Review(**data)
     instance.save()
-    user.reviews.append(instance.id) # add review to user's reviews list
-    # user.save()
     storage.save()
     print(user.reviews) # check if review was added to user reviews list
     return make_response(jsonify(instance.to_dict()), 201)

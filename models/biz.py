@@ -50,7 +50,7 @@ class Biz(BaseModel, Base):
         latitude = 0.0
         longitude = 0.0
         category_id = ""
-        amenity_ids = []
+        amenities = dict()
         operating_hrs = dict() # ?
 
     def __init__(self, *args, **kwargs):
@@ -67,7 +67,9 @@ class Biz(BaseModel, Base):
             for review in all_reviews.values():
                 if review.biz_id == self.id:
                     review_list.append(review)
-            return review_list
+            # Sort the reviews by created_at in descending order (latest first)
+            sorted_reviews = sorted(review_list, key=lambda review: review.created_at, reverse=True)
+            return sorted_reviews
 
         @property
         def get_category(self):

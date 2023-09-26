@@ -7,6 +7,7 @@
         <div class="card-body">
             <h5 class="card-title text-center">Amenities</h5>
             <form id="amenities-form" method="POST" action="">
+                <!-- form for chosing amenities to add to biz-->
                 <div class="row">
                     <div class="col-md-6">
                         {% for amenity in amenities %}
@@ -30,6 +31,7 @@
         <div class="card-body">
             <h5 class="card-title text-center">{{ biz.name }}'s Amenities</h5>
             <form id="amenities-form" method="POST" action="">
+                <!-- Form to remove amenities from biz-->
                 <div class="row">
                     <div class="col-md-6">
                         {% for amen in biz_amenities %}

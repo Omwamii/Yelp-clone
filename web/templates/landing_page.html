@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Yelp Clone</title>
+    <title>Grumble</title>
     <link rel="stylesheet" href="../static/styles/style.css"> <!-- Include your CSS file for styling -->
 </head>
 <body id="body">
@@ -20,7 +20,8 @@
     <section id="hero">
         <h1>Welcome to Grumble</h1>
         <p>Discover and review local businesses. Share your experiences.</p>
-        <a href="#signup" class="cta-button">Get Started</a>
+        <a href="{{ url_for('register_user') }}" class="cta-button">Get Started</a>
+        <a href="{{ url_for('index') }}" class="cta-button">Home</a>
     </section>
 
     <section id="about">
@@ -42,7 +43,7 @@
     <section id="contact">
         <h2>Contact Us</h2>
         <p>If you have any questions or need assistance, feel free to contact us:</p>
-        <a href="mailto:contact@example.com">Email: contact@example.com</a>
+        <a href="mailto:contact@example.com">Email: ianalpha@protonmail.com</a>
     </section>
 
     <footer>
